@@ -9,7 +9,7 @@ public class JumpOrb : MonoBehaviour
 
     void Start() // TEMP DEBUG: Check SpriteRenderer and Collider2D references here.
     {
-        spriteRenderer = GetComponent<SpriteRenderer>(); 
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>(); 
         orbCollider = GetComponent<Collider2D>();
         Debug.Log($"[JumpOrb] Started. SpriteRenderer: {spriteRenderer != null}, Collider: {orbCollider != null}", this);
     }
