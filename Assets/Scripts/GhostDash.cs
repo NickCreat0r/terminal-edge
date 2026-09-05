@@ -3,10 +3,9 @@ using UnityEngine.InputSystem;
 public class GhostDash : MonoBehaviour
 {
     [Header("Dash Settings")]
-    public float dashSpeed = 25f; // Πιο γρήγορο για dash (το 10f είναι σαν απλό τρέξιμο)
-    public int totalDashes = 4; // Total number of dashes available
-    public float dashDuration = 0.15f; // Πόσο διαρκεί το dash στον αέρα
-
+    public float dashSpeed = 25f;
+    public int totalDashes = 4; 
+    public float dashDuration = 0.15f; // Πόσο διαρκεί το dash
     private Rigidbody2D rb;
     private int lastDirection = 1; // 1 = Δεξιά, -1 = Αριστερά
     private bool triggerDash = false; // Γέφυρα μεταξύ Update και FixedUpdate
@@ -15,23 +14,16 @@ public class GhostDash : MonoBehaviour
     private float dashTimer = 0f;
     private float originalGravity; // Αποθηκεύει τη βαρύτητα για να την επαναφέρει
     private float horizontalInput; // Αποθηκεύει την τελευταία κατεύθυνση που πατήθηκε
-    private Animator anim; 
-
-    // TEMP DEBUG: Check Rigidbody2D and initial gravity setup here.
+    private PlayerMovement playerMovement; // Reference to the PlayerMovement script
     void Start()
     {
-        anim = GetComponentInChildren<Animator>();
+        playerMovement = GetComponent<PlayerMovement>();
         rb = GetComponent<Rigidbody2D>();
         originalGravity = rb.gravityScale; // Αποθηκεύουμε την αρχική βαρύτητα του παίκτη
-        Debug.Log($"[GhostDash] Started. Rigidbody: {rb != null}, gravity: {originalGravity}", this);
+        Debug.Log($"[GhostDash] Started. Rigidbody: {rb != null}, gravity: {originalGravity}, PlayerMovement: {playerMovement != null}", this);
     }
+    
 
-    // TEMP DEBUG: Check whether the Move action reaches the dash script.
-    void OnMove(InputValue value)
-    {
-        horizontalInput = value.Get<Vector2>().x;
-        if (horizontalInput != 0f) Debug.Log($"[GhostDash] Move input: {horizontalInput}", this);
-    }
 
     // TEMP DEBUG: Check whether the Dash action reaches this callback.
     void OnDash(InputValue value)
@@ -44,6 +36,11 @@ public class GhostDash : MonoBehaviour
 
             if (lastDirection == 1 && totalDashes >= 1) RightDash();
             else if (lastDirection == -1 && totalDashes >= 2) LeftDash();
+        }
+
+        if (playerMovement != null)
+        {
+            horizontalInput = playerMovement.horizontalInput;
         }
     }
 
@@ -78,9 +75,6 @@ void FixedUpdate()
                 isDashing = false; 
                 rb.gravityScale = originalGravity;
                 rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y); 
-
-                // ADD THIS: Stop dash animation
-                anim.SetBool("IsDashing", false);
             }
         }
     }
