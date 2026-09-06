@@ -30,6 +30,11 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
+        Debug.Log(
+    $"Player layer: {gameObject.layer}, " +
+    $"Ceiling layer: {LayerMask.NameToLayer("Ceiling")}, " +
+    $"Player collider: {GetComponent<Collider2D>() != null}"
+);
         rb = GetComponent<Rigidbody2D>();
         originalGravity = rb.gravityScale;
         orbInteraction = GetComponent<OrbInteraction>();

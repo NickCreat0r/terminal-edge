@@ -21,6 +21,10 @@ public class CeilingCrawler2D : MonoBehaviour
         playerLayer = gameObject.layer;
         ceilingLayer = LayerMask.NameToLayer(ceilingLayerName);
         Debug.Log("CeilingCrawler2D Awake: Default gravity saved as " + defaultGravity);
+        Debug.Log(
+    $"Ceiling layer index: {ceilingLayer}, " +
+    $"Collision enabled: {Physics2D.GetIgnoreLayerCollision(playerLayer, ceilingLayer) == false}"
+);
     }
 
     private void CheckForCeilingAndGrab()
