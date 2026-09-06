@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour
     public bool OnGround;
     public float horizontalInput;
     private Rigidbody2D rb;
+        private OrbInteraction orbInteraction;
     public float coyoteTime = 0.1f;
     public float jumpBufferTime = 0.1f;
     private float lastGroundedTime;
@@ -24,12 +25,14 @@ public class PlayerMovement : MonoBehaviour
     private bool isDashing;
     private float dashTimer;
     private float originalGravity;
-    
+    private bool orbJumpRequested;
+    private float requestedOrbJumpForce;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         originalGravity = rb.gravityScale;
+        orbInteraction = GetComponent<OrbInteraction>();
         ceilingCrawler = GetComponent<CeilingCrawler2D>();
         anim = GetComponentInChildren<Animator>();
         playerSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -62,6 +65,7 @@ public class PlayerMovement : MonoBehaviour
         if (value.isPressed)
         {
             lastJumpPressedTime = Time.time;
+            orbInteraction?.BufferOrbJump();
             Debug.Log("[PlayerMovement] Jump input received.", this); // TEMP DEBUG: Check whether the Jump action is being buffered.
         }
     }
@@ -98,6 +102,18 @@ public class PlayerMovement : MonoBehaviour
 
             return;
         }
+
+        if (orbJumpRequested)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+            rb.AddForce(Vector2.up * requestedOrbJumpForce, ForceMode2D.Impulse);
+
+            orbJumpRequested = false;
+            lastJumpPressedTime = -999f;
+            OnGround = false;
+
+            return;
+    }
 
         rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y); //Apply horizontal speed,but keep current Y velocity
         
@@ -150,5 +166,25 @@ public bool RequestDash(int direction, float speed, float duration)
 
     return true;
 }
+
+public bool RequestOrbJump(float jumpForce)
+{
+    if (orbJumpRequested || IsTouchingCeiling())
+    {
+        return false;
+    }
+
+    dashRequested = false;
+    isDashing = false;
+    dashTimer = 0f;
+    rb.gravityScale = originalGravity;
+    rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+    requestedOrbJumpForce = jumpForce;
+    orbJumpRequested = true;
+
+    return true;
+}
+
 }
 

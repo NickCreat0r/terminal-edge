@@ -1,8 +1,7 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 public class OrbInteraction : MonoBehaviour
 {
-    private Rigidbody2D rb;
+    private PlayerMovement playerMovement;
     private JumpOrb activeOrb = null;
     private bool isTouchingOrb = false;
 
@@ -14,17 +13,14 @@ public class OrbInteraction : MonoBehaviour
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        Debug.Log($"[OrbInteraction] Started. Rigidbody: {rb != null}", this);
+        playerMovement = GetComponent<PlayerMovement>();
+        Debug.Log($"[OrbInteraction] Started. PlayerMovement: {playerMovement != null}", this);
     }
 
-    void OnJump(InputValue value)
+    public void BufferOrbJump()
     {
-        if (value.isPressed)
-        {
-            inputBufferCounter = inputBufferTime;
-            Debug.Log("[OrbInteraction] Jump input buffered for orb.", this); // TEMP DEBUG: Check whether Jump input is buffered for an orb.
-        }
+        inputBufferCounter = inputBufferTime;
+        Debug.Log("[OrbInteraction] Jump input buffered for orb.", this); // TEMP DEBUG: Check whether the Jump action is being buffered for an orb.
     }
 
     void Update()
@@ -47,17 +43,20 @@ public class OrbInteraction : MonoBehaviour
         
         if (inputBufferCounter > 0f && activeOrb != null)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f); // Reset momentum before applying jump force
-            rb.AddForce(Vector2.up * activeOrb.jumpForce, ForceMode2D.Impulse); // Launch
-            activeOrb.ConsumeOrb();
-            // Consume the timers so we don't accidentally double jump
-            inputBufferCounter = 0f;
-            orbGraceCounter = 0f;
-            activeOrb = null;
-            isTouchingOrb = false;
-            Debug.Log("[OrbInteraction] Orb jump executed.", this); // TEMP DEBUG: Check when the orb jump is executed and timers are reset.
-        }
-    }
+            if (playerMovement != null &&
+                playerMovement.RequestOrbJump(activeOrb.jumpForce))
+            {
+                activeOrb.ConsumeOrb();
+
+                inputBufferCounter = 0f;
+                orbGraceCounter = 0f;
+                activeOrb = null;
+                isTouchingOrb = false;
+
+                Debug.Log("[OrbInteraction] Orb jump requested.", this);
+            }
+}
+}
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Orb"))
