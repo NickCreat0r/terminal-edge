@@ -14,15 +14,22 @@ public class PlayerMovement : MonoBehaviour
     public float jumpBufferTime = 0.1f;
     private float lastGroundedTime;
     private float lastJumpPressedTime = -999f;
-    private GhostDash ghostDash;
     private CeilingCrawler2D ceilingCrawler;
     private Animator anim;
     private SpriteRenderer playerSpriteRenderer;
+    private bool dashRequested;
+    private int requestedDashDirection;
+    private float requestedDashSpeed;
+    private float requestedDashDuration;
+    private bool isDashing;
+    private float dashTimer;
+    private float originalGravity;
+    
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        ghostDash = GetComponent<GhostDash>();
+        originalGravity = rb.gravityScale;
         ceilingCrawler = GetComponent<CeilingCrawler2D>();
         anim = GetComponentInChildren<Animator>();
         playerSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -34,7 +41,6 @@ public class PlayerMovement : MonoBehaviour
     {
         if (IsTouchingCeiling())
     {   
-        // If the player is hanging from the ceiling, ignore horizontal input to prevent movement while hanging.
         return;
     }
         Vector2 inputVector = value.Get<Vector2>(); // The default Move action returns a 2D vector (X and Y). 
@@ -63,16 +69,38 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         if (IsTouchingCeiling())
-    {
+        {
         OnGround = false; // Prevents the player from being considered grounded while hanging from the ceiling
         return;
-    }
-
-        if (ghostDash == null || !ghostDash.isDashing)
-        {
-            rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y); //Apply horizontal speed,but keep current Y velocity
         }
 
+        if (dashRequested)
+        {
+            isDashing = true;
+            dashTimer = requestedDashDuration;
+            dashRequested = false;
+            rb.gravityScale = 0f;
+        }
+
+        if (isDashing)
+        {
+            if (dashTimer > 0f)
+            {
+                rb.linearVelocity = new Vector2(requestedDashDirection * requestedDashSpeed,rb.linearVelocity.y);
+                dashTimer -= Time.fixedDeltaTime;
+            }
+            else
+            {
+                isDashing = false;
+                rb.gravityScale = originalGravity;
+                rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            }
+
+            return;
+        }
+
+        rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y); //Apply horizontal speed,but keep current Y velocity
+        
         OnGround = IsGrounded();
         
         if (OnGround) lastGroundedTime = Time.time;
@@ -107,5 +135,20 @@ public class PlayerMovement : MonoBehaviour
     {
         return ceilingCrawler != null && ceilingCrawler.isHanging;
     }
+
+public bool RequestDash(int direction, float speed, float duration)
+{
+    if (dashRequested || isDashing)
+    {
+        return false;
+    }
+
+    requestedDashDirection = direction;
+    requestedDashSpeed = speed;
+    requestedDashDuration = duration;
+    dashRequested = true;
+
+    return true;
+}
 }
 
