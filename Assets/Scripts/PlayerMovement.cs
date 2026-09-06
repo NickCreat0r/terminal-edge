@@ -15,6 +15,7 @@ public class PlayerMovement : MonoBehaviour
     private float lastGroundedTime;
     private float lastJumpPressedTime = -999f;
     private GhostDash ghostDash;
+    private CeilingCrawler2D ceilingCrawler;
     private Animator anim;
     private SpriteRenderer playerSpriteRenderer;
 
@@ -22,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         ghostDash = GetComponent<GhostDash>();
+        ceilingCrawler = GetComponent<CeilingCrawler2D>();
         anim = GetComponentInChildren<Animator>();
         playerSpriteRenderer = GetComponentInChildren<SpriteRenderer>();
         // TEMP DEBUG: Check Rigidbody2D, GroundCollider, and Animator references here.
@@ -30,6 +32,11 @@ public class PlayerMovement : MonoBehaviour
 
     void OnMove(InputValue value)
     {
+        if (IsTouchingCeiling())
+    {   
+        // If the player is hanging from the ceiling, ignore horizontal input to prevent movement while hanging.
+        return;
+    }
         Vector2 inputVector = value.Get<Vector2>(); // The default Move action returns a 2D vector (X and Y). 
         horizontalInput = inputVector.x;
         
@@ -42,6 +49,10 @@ public class PlayerMovement : MonoBehaviour
 
     void OnJump(InputValue value)
     {
+        if (IsTouchingCeiling())
+    {
+        return;
+    }
         if (value.isPressed)
         {
             lastJumpPressedTime = Time.time;
@@ -51,6 +62,12 @@ public class PlayerMovement : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (IsTouchingCeiling())
+    {
+        OnGround = false; // Prevents the player from being considered grounded while hanging from the ceiling
+        return;
+    }
+
         if (ghostDash == null || !ghostDash.isDashing)
         {
             rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y); //Apply horizontal speed,but keep current Y velocity
@@ -84,6 +101,11 @@ public class PlayerMovement : MonoBehaviour
         }
         Bounds groundCheckBounds = GroundCollider.bounds;
         return Physics2D.OverlapBox(groundCheckBounds.center,groundCheckBounds.size,0f,GroundLayer) != null;
+    }
+
+    private bool IsTouchingCeiling()
+    {
+        return ceilingCrawler != null && ceilingCrawler.isHanging;
     }
 }
 

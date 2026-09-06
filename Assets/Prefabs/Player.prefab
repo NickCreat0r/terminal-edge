@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1962775791887383853}
   - component: {fileID: 6677104452746991689}
   - component: {fileID: 619180610268595926}
+  - component: {fileID: 8844786964098419447}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -199,6 +200,21 @@ MonoBehaviour:
   totalDashes: 4
   dashDuration: 0.15
   isDashing: 0
+--- !u!114 &8844786964098419447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 739122991654921640}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57351e61d2a6395458b37cb8ee9078df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  crawlSpeed: 4
+  upwardReach: 10
+  gripTag: CeilingGrip
 --- !u!1 &1467531628418093423
 GameObject:
   m_ObjectHideFlags: 0
